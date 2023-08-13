@@ -11,6 +11,8 @@ def list_pictures(directory: Path) -> None:
             print(f'{file.name} has EXIF:')
             for k, v in exif.items():
                 print(f'  {ExifTags.TAGS[k]}: {v}')
+            for k, v in exif.get_ifd(ExifTags.IFD.Exif).items():
+                print(f'  {ExifTags.TAGS[k]}: {v}')
         except UnidentifiedImageError:
             pass
 
