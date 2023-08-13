@@ -9,6 +9,10 @@ from PIL import Image, UnidentifiedImageError, ExifTags
 
 exif_offset_re = re.compile("([+-])(\\d\\d):(\\d\\d)", re.ASCII)
 exif_datetime_format = "%Y:%m:%d %H:%M:%S"
+max_date = datetime.datetime(
+    datetime.MAXYEAR, 12, 31,
+    tzinfo=datetime.timezone.utc,
+)
 
 
 class Arguments:
@@ -100,5 +104,8 @@ def list_pictures(directory: Path) -> list[Picture]:
 
 if __name__ == "__main__":
     args = Arguments(sys.argv)
-    for image in list_pictures(args.directory):
-        image.print()
+    pics = list_pictures(args.directory)
+    pics.sort(key=lambda i: i.path.name)
+    pics.sort(key=lambda i: i.date() or max_date)
+    for picture in pics:
+        print(f"{picture.path.name}: {picture.date()}")
