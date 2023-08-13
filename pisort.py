@@ -1,7 +1,32 @@
+import sys
+from getopt import getopt
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional, TextIO, Never
 
 from PIL import Image, UnidentifiedImageError, ExifTags
+
+
+class Arguments:
+
+    def __init__(self, argv: list[str]):
+        def fatal(msg: str) -> Never:
+            print(f"{argv[0]}: {msg}", file=sys.stderr)
+            exit(1)
+
+        options, parameters = getopt(argv[1:], "")
+
+        if len(parameters) > 1:
+            fatal("Too many arguments")
+
+        directory = "."
+        if len(parameters) > 0:
+            directory = parameters[0]
+
+        self.directory = Path(directory)
+        if not self.directory.exists():
+            fatal(f"No such directory: {directory}")
+        if not self.directory.is_dir():
+            fatal(f"Not a directory: {directory}")
 
 
 class Picture:
@@ -35,5 +60,6 @@ def list_pictures(directory: Path) -> list[Picture]:
 
 
 if __name__ == "__main__":
-    for image in list_pictures(Path(".")):
+    args = Arguments(sys.argv)
+    for image in list_pictures(args.directory):
         image.print()
