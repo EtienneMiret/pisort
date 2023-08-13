@@ -7,7 +7,8 @@ from typing import Optional, TextIO, Never
 
 from PIL import Image, UnidentifiedImageError, ExifTags
 
-tz_offset_re = re.compile("([+-])(\\d\\d):(\\d\\d)", re.ASCII)
+exif_offset_re = re.compile("([+-])(\\d\\d):(\\d\\d)", re.ASCII)
+exif_datetime_format = "%Y:%m:%d %H:%M:%S"
 
 
 class Arguments:
@@ -50,9 +51,30 @@ class Picture:
         for k, v in self.exif.get_ifd(ExifTags.IFD.Exif).items():
             print(f'  {ExifTags.TAGS[k]}: {v}', file=file)
 
+    def date(self) -> Optional[datetime.datetime]:
+        tz = datetime.datetime.now().astimezone().tzinfo
+        tz_ifd = self.exif.get_ifd(ExifTags.IFD.Exif)
+        for (date_tag, tz_tag) in [
+            (ExifTags.Base.DateTimeOriginal, ExifTags.Base.OffsetTimeOriginal),
+            (ExifTags.Base.DateTimeDigitized, ExifTags.Base.OffsetTimeDigitized),
+            (ExifTags.Base.DateTime, ExifTags.Base.OffsetTime),
+        ]:
+            date_ifd = self.exif.get_ifd(ExifTags.IFD.Exif)
+            if date_tag == ExifTags.Base.DateTime:
+                date_ifd = self.exif
+            if date_tag in date_ifd:
+                date = datetime.datetime.strptime(
+                    date_ifd[date_tag],
+                    exif_datetime_format,
+                )
+                if tz_tag in tz_ifd:
+                    tz = parse_offset(tz_ifd[tz_tag])
+                return date.replace(tzinfo=tz)
+        return None
+
 
 def parse_offset(string: str) -> datetime.tzinfo:
-    match = tz_offset_re.fullmatch(string)
+    match = exif_offset_re.fullmatch(string)
     if not match:
         return datetime.datetime.now().astimezone().tzinfo
     delta = datetime.timedelta(
