@@ -1,9 +1,13 @@
+import datetime
+import re
 import sys
 from getopt import getopt
 from pathlib import Path
 from typing import Optional, TextIO, Never
 
 from PIL import Image, UnidentifiedImageError, ExifTags
+
+tz_offset_re = re.compile("([+-])(\\d\\d):(\\d\\d)", re.ASCII)
 
 
 class Arguments:
@@ -45,6 +49,19 @@ class Picture:
             print(f'  {ExifTags.TAGS[k]}: {v}', file=file)
         for k, v in self.exif.get_ifd(ExifTags.IFD.Exif).items():
             print(f'  {ExifTags.TAGS[k]}: {v}', file=file)
+
+
+def parse_offset(string: str) -> datetime.tzinfo:
+    match = tz_offset_re.fullmatch(string)
+    if not match:
+        return datetime.datetime.now().astimezone().tzinfo
+    delta = datetime.timedelta(
+        hours=int(match.group(2)),
+        minutes=int(match.group(3)),
+    )
+    if match.group(1) == "-":
+        delta = -delta
+    return datetime.timezone(delta, string)
 
 
 def list_pictures(directory: Path) -> list[Picture]:
