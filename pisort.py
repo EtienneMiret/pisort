@@ -26,11 +26,10 @@ class Arguments:
 
         options, parameters = getopt(argv[1:], "", ["name="])
 
-        name = None
+        self.name = None
         for k, v in options:
             if k == "--name":
-                name = v
-        self.name = name
+                self.name = v
 
         if len(parameters) > 1:
             fatal("Too many arguments")
@@ -113,8 +112,11 @@ def list_pictures(directory: Path) -> list[Picture]:
     return result
 
 
-def sort_pictures(pictures: list[Picture]) -> None:
+def sort_pictures(pictures: list[Picture], name: Optional[str] = None) -> None:
     name_format = f"{{:0{len(str(len(pictures) - 1))}}}"
+    if name is not None:
+        name_format += f" - {name}"
+
     pictures = sorted(pictures, key=lambda p: p.path.name)
     pictures = sorted(pictures, key=lambda p: p.date() or max_date)
 
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     args = Arguments(sys.argv)
     pics = list_pictures(args.directory)
     try:
-        sort_pictures(pics)
+        sort_pictures(pics, args.name)
     except FileExistsError as error:
         print(f"File already exist, will not overwrite: {error.filename}", file=sys.stderr)
         exit(2)

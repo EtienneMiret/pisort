@@ -43,6 +43,22 @@ class SortPicturesTest(unittest.TestCase):
         self.assertTrue(modified.samefile(self.dst / "3.png"))
         self.assertTrue(no_date.samefile(self.dst / "4.png"))
 
+    def test_add_specified_name(self) -> None:
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        (self.dst / "modified.png").hardlink_to(modified)
+        (self.dst / "original.png").hardlink_to(original)
+        pictures = [Picture(self.dst / name) for name in [
+            "digitized.png",
+            "modified.png",
+            "original.png",
+        ]]
+
+        sort_pictures(pictures, "Summer 2023")
+
+        self.assertTrue(original.samefile(self.dst / "0 - Summer 2023.png"))
+        self.assertTrue(digitized.samefile(self.dst / "1 - Summer 2023.png"))
+        self.assertTrue(modified.samefile(self.dst / "2 - Summer 2023.png"))
+
     def test_already_numbered_files_are_not_deleted(self) -> None:
         (self.dst / "0.png").hardlink_to(original)
         (self.dst / "1.png").hardlink_to(modified)
