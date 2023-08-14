@@ -24,7 +24,13 @@ class Arguments:
             print(f"{argv[0]}: {msg}", file=sys.stderr)
             exit(1)
 
-        options, parameters = getopt(argv[1:], "")
+        options, parameters = getopt(argv[1:], "", ["name="])
+
+        name = None
+        for k, v in options:
+            if k == "--name":
+                name = v
+        self.name = name
 
         if len(parameters) > 1:
             fatal("Too many arguments")

@@ -68,3 +68,38 @@ class ArgumentsTest(unittest.TestCase):
         self.assertEqual(Path(), arguments.directory)
         print_mock.assert_not_called()
         exit_mock.assert_not_called()
+
+    def test_dash_dast_terminates_options(self, print_mock: Mock, exit_mock: Mock) -> None:
+        self.assertRaises(Exit, Arguments, ["test", "--", "--name=Vacations"])
+
+        print_mock.assert_called_once_with("test: No such directory: --name=Vacations", file=sys.stderr)
+        exit_mock.assert_called_once_with(1)
+
+    def test_can_specify_name_using_space(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--name", "Holidays"])
+
+        self.assertEqual("Holidays", arguments.name)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_can_specify_name_using_equal(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--name=New York trip"])
+
+        self.assertEqual("New York trip", arguments.name)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_name_is_None_by_default(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--"])
+
+        self.assertIsNone(arguments.name)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_can_specify_name_and_directory(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--name", "New home", "--", self.temp_dir.name])
+
+        self.assertEqual(Path(self.temp_dir.name), arguments.directory)
+        self.assertEqual("New home", arguments.name)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
