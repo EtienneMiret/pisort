@@ -55,6 +55,28 @@ class SortPicturesTest(unittest.TestCase):
         self.assertTrue(digitized.samefile(self.dst / "1.png"))
         self.assertTrue(modified.samefile(self.dst / "2.png"))
 
+    def test_do_nothing_when_would_overwrite_directory(self) -> None:
+        (self.dst / "original.png").hardlink_to(original)
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        (self.dst / "1.png").mkdir()
+        pictures = [Picture(self.dst / name) for name in ["original.png", "digitized.png"]]
+
+        self.assertRaises(FileExistsError, sort_pictures, pictures)
+
+        self.assertTrue(original.samefile(self.dst / "original.png"))
+        self.assertTrue(digitized.samefile(self.dst / "digitized.png"))
+
+    def test_do_nothing_when_would_overwrite_non_picture_file(self) -> None:
+        (self.dst / "original.png").hardlink_to(original)
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        (self.dst / "1.png").touch()
+        pictures = [Picture(self.dst / name) for name in ["original.png", "digitized.png"]]
+
+        self.assertRaises(FileExistsError, sort_pictures, pictures)
+
+        self.assertTrue(original.samefile(self.dst / "original.png"))
+        self.assertTrue(digitized.samefile(self.dst / "digitized.png"))
+
     def test_pad_numer_with_zeros(self) -> None:
         pictures = self.mk_samples(25)
 

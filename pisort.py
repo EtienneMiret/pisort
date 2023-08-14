@@ -1,4 +1,5 @@
 import datetime
+import errno
 import re
 import sys
 import uuid
@@ -111,6 +112,13 @@ def sort_pictures(pictures: list[Picture]) -> None:
     pictures = sorted(pictures, key=lambda p: p.path.name)
     pictures = sorted(pictures, key=lambda p: p.date() or max_date)
 
+    # Check we won’t overwrite anything
+    current_paths = {picture.path for picture in pictures}
+    for i in range(len(pictures)):
+        new_path = pictures[i].path.with_stem(name_format.format(i))
+        if new_path not in current_paths and new_path.exists():
+            raise FileExistsError(errno.EEXIST, "Target file already exists", str(new_path))
+
     # Rename in two steps:
     # We can have file foo and bar with foo.new_name == bar.old_name
     for picture in pictures:
@@ -122,4 +130,8 @@ def sort_pictures(pictures: list[Picture]) -> None:
 if __name__ == "__main__":
     args = Arguments(sys.argv)
     pics = list_pictures(args.directory)
-    sort_pictures(pics)
+    try:
+        sort_pictures(pics)
+    except FileExistsError as error:
+        print(f"File already exist, will not overwrite: {error.filename}", file=sys.stderr)
+        exit(2)
