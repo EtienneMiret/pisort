@@ -1,6 +1,7 @@
 import datetime
 import re
 import sys
+import uuid
 from getopt import getopt
 from pathlib import Path
 from typing import Optional, TextIO, Never
@@ -76,6 +77,9 @@ class Picture:
                 return date.replace(tzinfo=tz)
         return None
 
+    def rename_to(self, new_name: str) -> None:
+        self.path = self.path.rename(self.path.with_stem(new_name))
+
 
 def parse_offset(string: str) -> datetime.tzinfo:
     match = exif_offset_re.fullmatch(string)
@@ -102,10 +106,20 @@ def list_pictures(directory: Path) -> list[Picture]:
     return result
 
 
+def sort_pictures(pictures: list[Picture]) -> None:
+    name_format = f"{{:0{len(str(len(pictures) - 1))}}}"
+    pictures = sorted(pictures, key=lambda p: p.path.name)
+    pictures = sorted(pictures, key=lambda p: p.date() or max_date)
+
+    # Rename in two steps:
+    # We can have file foo and bar with foo.new_name == bar.old_name
+    for picture in pictures:
+        picture.rename_to(str(uuid.uuid4()))
+    for i in range(len(pictures)):
+        pictures[i].rename_to(name_format.format(i))
+
+
 if __name__ == "__main__":
     args = Arguments(sys.argv)
     pics = list_pictures(args.directory)
-    pics.sort(key=lambda i: i.path.name)
-    pics.sort(key=lambda i: i.date() or max_date)
-    for picture in pics:
-        print(f"{picture.path.name}: {picture.date()}")
+    sort_pictures(pics)
