@@ -46,8 +46,10 @@ class Arguments:
                     print(f"""\
 usage: {argv[0]} [options] [directory]
 
-Sort files with Exif metadata from a directory in chronological order. If
+Sort files with Exif dates from a directory in chronological order. If
 unspecified, this directory defaults to the working directory.
+
+Files with no Exif metadata or no date in their metadata will be ignored.
 
 Options:
  -h,--help      Display this help message.
@@ -136,7 +138,9 @@ def list_pictures(directory: Path) -> list[Picture]:
         if not file.is_file():
             continue
         try:
-            result.append(Picture(file))
+            pic = Picture(file)
+            if pic.date() is not None:
+                result.append(pic)
         except UnidentifiedImageError:
             pass
     return result
