@@ -59,6 +59,67 @@ class SortPicturesTest(unittest.TestCase):
         self.assertSameFile(digitized, "1 - Summer 2023.png")
         self.assertSameFile(modified, "2 - Summer 2023.png")
 
+    def test_keep_good_names(self) -> None:
+        (self.dst / "0 - Original.png").hardlink_to(original)
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        (self.dst / "1 - Modified.png").hardlink_to(modified)
+        pictures = [Picture(self.dst / name) for name in [
+            "0 - Original.png",
+            "digitized.png",
+            "1 - Modified.png",
+        ]]
+
+        sort_pictures(pictures)
+
+        self.assertSameFile(original, "0 - Original.png")
+        self.assertSameFile(digitized, "1.png")
+        self.assertSameFile(modified, "2 - Modified.png")
+
+    def test_discard_names(self) -> None:
+        (self.dst / "0 - Original.png").hardlink_to(original)
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        pictures = [Picture(self.dst / name) for name in [
+            "0 - Original.png",
+            "digitized.png",
+        ]]
+
+        sort_pictures(pictures, keep_good_names=False)
+
+        self.assertSameFile(original, "0.png")
+        self.assertSameFile(digitized, "1.png")
+
+    def test_rename_unnamed_only(self) -> None:
+        (self.dst / "0 - Original.png").hardlink_to(original)
+        (self.dst / "1.png").hardlink_to(digitized)
+        (self.dst / "modified.png").hardlink_to(modified)
+        pictures = [Picture(self.dst / name) for name in [
+            "0 - Original.png",
+            "1.png",
+            "modified.png",
+        ]]
+
+        sort_pictures(pictures, "Picture")
+
+        self.assertSameFile(original, "0 - Original.png")
+        self.assertSameFile(digitized, "1 - Picture.png")
+        self.assertSameFile(modified, "2 - Picture.png")
+
+    def test_rename_all(self) -> None:
+        (self.dst / "0 - Original.png").hardlink_to(original)
+        (self.dst / "digitized.png").hardlink_to(digitized)
+        (self.dst / "2.png").hardlink_to(modified)
+        pictures = [Picture(self.dst / name) for name in [
+            "0 - Original.png",
+            "digitized.png",
+            "2.png",
+        ]]
+
+        sort_pictures(pictures, "Christmas", keep_good_names=False)
+
+        self.assertSameFile(original, "0 - Christmas.png")
+        self.assertSameFile(digitized, "1 - Christmas.png")
+        self.assertSameFile(modified, "2 - Christmas.png")
+
     def test_already_numbered_files_are_not_deleted(self) -> None:
         (self.dst / "0.png").hardlink_to(original)
         (self.dst / "1.png").hardlink_to(modified)
