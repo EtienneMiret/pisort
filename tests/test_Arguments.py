@@ -138,3 +138,15 @@ class ArgumentsTest(unittest.TestCase):
         self.assertFalse(arguments.keep_good_names)
         print_mock.assert_not_called()
         exit_mock.assert_not_called()
+
+    def test_h_print_help(self, print_mock: Mock, exit_mock: Mock) -> None:
+        self.assertRaises(Exit, Arguments, ["test", "-h"])
+
+        print_mock.assert_called()
+        exit_mock.assert_called_once_with(0)
+
+    def test_help_print_help(self, print_mock: Mock, exit_mock: Mock) -> None:
+        self.assertRaises(Exit, Arguments, ["test", "--help"])
+
+        print_mock.assert_called()
+        exit_mock.assert_called_once_with(0)
