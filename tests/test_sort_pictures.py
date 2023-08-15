@@ -37,11 +37,11 @@ class SortPicturesTest(unittest.TestCase):
 
         sort_pictures(pictures)
 
-        self.assertTrue(sample.samefile(self.dst / "0.jpg"))
-        self.assertTrue(original.samefile(self.dst / "1.png"))
-        self.assertTrue(digitized.samefile(self.dst / "2.png"))
-        self.assertTrue(modified.samefile(self.dst / "3.png"))
-        self.assertTrue(no_date.samefile(self.dst / "4.png"))
+        self.assertSameFile(sample, "0.jpg")
+        self.assertSameFile(original, "1.png")
+        self.assertSameFile(digitized, "2.png")
+        self.assertSameFile(modified, "3.png")
+        self.assertSameFile(no_date, "4.png")
 
     def test_add_specified_name(self) -> None:
         (self.dst / "digitized.png").hardlink_to(digitized)
@@ -55,9 +55,9 @@ class SortPicturesTest(unittest.TestCase):
 
         sort_pictures(pictures, "Summer 2023")
 
-        self.assertTrue(original.samefile(self.dst / "0 - Summer 2023.png"))
-        self.assertTrue(digitized.samefile(self.dst / "1 - Summer 2023.png"))
-        self.assertTrue(modified.samefile(self.dst / "2 - Summer 2023.png"))
+        self.assertSameFile(original, "0 - Summer 2023.png")
+        self.assertSameFile(digitized, "1 - Summer 2023.png")
+        self.assertSameFile(modified, "2 - Summer 2023.png")
 
     def test_already_numbered_files_are_not_deleted(self) -> None:
         (self.dst / "0.png").hardlink_to(original)
@@ -67,9 +67,9 @@ class SortPicturesTest(unittest.TestCase):
 
         sort_pictures(pictures)
 
-        self.assertTrue(original.samefile(self.dst / "0.png"))
-        self.assertTrue(digitized.samefile(self.dst / "1.png"))
-        self.assertTrue(modified.samefile(self.dst / "2.png"))
+        self.assertSameFile(original, "0.png")
+        self.assertSameFile(digitized, "1.png")
+        self.assertSameFile(modified, "2.png")
 
     def test_do_nothing_when_would_overwrite_directory(self) -> None:
         (self.dst / "original.png").hardlink_to(original)
@@ -79,8 +79,8 @@ class SortPicturesTest(unittest.TestCase):
 
         self.assertRaises(FileExistsError, sort_pictures, pictures)
 
-        self.assertTrue(original.samefile(self.dst / "original.png"))
-        self.assertTrue(digitized.samefile(self.dst / "digitized.png"))
+        self.assertSameFile(original, "original.png")
+        self.assertSameFile(digitized, "digitized.png")
 
     def test_do_nothing_when_would_overwrite_non_picture_file(self) -> None:
         (self.dst / "original.png").hardlink_to(original)
@@ -90,8 +90,8 @@ class SortPicturesTest(unittest.TestCase):
 
         self.assertRaises(FileExistsError, sort_pictures, pictures)
 
-        self.assertTrue(original.samefile(self.dst / "original.png"))
-        self.assertTrue(digitized.samefile(self.dst / "digitized.png"))
+        self.assertSameFile(original, "original.png")
+        self.assertSameFile(digitized, "digitized.png")
 
     def test_pad_numer_with_zeros(self) -> None:
         pictures = self.mk_samples(25)
@@ -115,3 +115,11 @@ class SortPicturesTest(unittest.TestCase):
         for i in range(count):
             (self.dst / f"xxx-{i}.jpg").hardlink_to(sample)
         return [Picture(self.dst / f"xxx-{i}.jpg") for i in range(count)]
+
+    def assertSameFile(self, reference: Path, filename: str):
+        if not (self.dst / filename).exists():
+            existing = [p.name for p in self.dst.iterdir()]
+            existing.sort()
+            self.fail(f"File '{filename}' doesn’t exist. There are: {existing}.")
+        if not reference.samefile(self.dst / filename):
+            self.fail(f"File '{filename}' isn’t the same as '{reference.name}'.")
