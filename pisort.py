@@ -25,12 +25,18 @@ class Arguments:
             print(f"{argv[0]}: {msg}", file=sys.stderr)
             exit(1)
 
-        options, parameters = getopt(argv[1:], "", ["name="])
+        options, parameters = getopt(argv[1:], "", ["name=", "no-keep", "keep"])
 
         self.name = None
+        self.keep_good_names = True
         for k, v in options:
-            if k == "--name":
-                self.name = v
+            match k:
+                case "--name":
+                    self.name = v
+                case "--no-keep":
+                    self.keep_good_names = False
+                case "--keep":
+                    self.keep_good_names = True
 
         if len(parameters) > 1:
             fatal("Too many arguments")
@@ -152,7 +158,7 @@ if __name__ == "__main__":
     args = Arguments(sys.argv)
     pics = list_pictures(args.directory)
     try:
-        sort_pictures(pics, args.name)
+        sort_pictures(pics, args.name, keep_good_names=args.keep_good_names)
     except FileExistsError as error:
         print(f"File already exist, will not overwrite: {error.filename}", file=sys.stderr)
         exit(2)

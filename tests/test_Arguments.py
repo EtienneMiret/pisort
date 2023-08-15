@@ -103,3 +103,38 @@ class ArgumentsTest(unittest.TestCase):
         self.assertEqual("New home", arguments.name)
         print_mock.assert_not_called()
         exit_mock.assert_not_called()
+
+    def test_keep_good_name_by_default(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test"])
+
+        self.assertTrue(arguments.keep_good_names)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_no_keep(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--no-keep"])
+
+        self.assertFalse(arguments.keep_good_names)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_keep(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--keep"])
+
+        self.assertTrue(arguments.keep_good_names)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_keep_good_names_if_keep_is_last(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--keep", "--no-keep", "--no-keep", "--keep"])
+
+        self.assertTrue(arguments.keep_good_names)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
+
+    def test_rename_all_if_no_keep_is_last(self, print_mock: Mock, exit_mock: Mock) -> None:
+        arguments = Arguments(["test", "--keep", "--no-keep", "--keep", "--no-keep"])
+
+        self.assertFalse(arguments.keep_good_names)
+        print_mock.assert_not_called()
+        exit_mock.assert_not_called()
