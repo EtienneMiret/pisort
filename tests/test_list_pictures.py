@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pisort import list_pictures
+from src.pisort.pisort import list_pictures
 
 src = Path(__file__).parent
 
