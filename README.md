@@ -14,4 +14,11 @@ Run tests:
 poetry run python -m unittest
 ```
 
+Run `pisort`:
+
+```shell
+poetry run python -m pisort.pisort --help
+```
+
+
 [Poetry]: https://python-poetry.org/
