@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pisort.pisort import Picture, sort_pictures
+from pisort.Picture import Picture
+from pisort.sort_pictures import sort_pictures
 
 src = Path(__file__).parent
 digitized = src / "digitized_2023-08-01T20:00:00-07:00.png"
