@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, Mock
 
-from src.pisort.pisort import Arguments
+from pisort.pisort import Arguments
 
 
 class Exit(Exception):
@@ -15,8 +15,8 @@ def mock_exit():
     return Mock(side_effect=Exit())
 
 
-@patch("src.pisort.pisort.exit", new_callable=mock_exit)
-@patch("src.pisort.pisort.print")
+@patch("pisort.pisort.exit", new_callable=mock_exit)
+@patch("pisort.pisort.print")
 class ArgumentsTest(unittest.TestCase):
 
     def setUp(self) -> None:

@@ -1,7 +1,7 @@
 import datetime
 import unittest
 
-from src.pisort.pisort import parse_offset
+from pisort.pisort import parse_offset
 
 
 class ParseOffsetTest(unittest.TestCase):

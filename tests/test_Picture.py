@@ -2,7 +2,7 @@ import datetime
 import unittest
 from pathlib import Path
 
-from src.pisort.pisort import Picture
+from pisort.pisort import Picture
 
 
 class PictureTest(unittest.TestCase):
