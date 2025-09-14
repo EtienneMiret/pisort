@@ -18,6 +18,7 @@ Run `pisort`:
 
 ```shell
 poetry run python -m pisort.pisort --help
+poetry run python -m pisort.set_datetime --help
 ```
 
 
