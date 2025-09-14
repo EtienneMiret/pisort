@@ -1,8 +1,7 @@
 from pathlib import Path
 
-from PIL import UnidentifiedImageError
-
 from pisort.Picture import Picture
+from pisort.exceptions import NoExifDataException
 
 
 def list_pictures(directory: Path) -> list[Picture]:
@@ -14,6 +13,6 @@ def list_pictures(directory: Path) -> list[Picture]:
             pic = Picture(file)
             if pic.date() is not None:
                 result.append(pic)
-        except UnidentifiedImageError:
+        except NoExifDataException:
             pass
     return result

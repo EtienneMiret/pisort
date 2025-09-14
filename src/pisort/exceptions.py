@@ -1,0 +1,2 @@
+class NoExifDataException(Exception):
+    pass

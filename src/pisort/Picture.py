@@ -2,8 +2,10 @@ import datetime
 from pathlib import Path
 from typing import Optional, TextIO
 
-from PIL import Image, ExifTags
+import exifread
+from exifread.core.ifd_tag import IfdTag
 
+from pisort.exceptions import NoExifDataException
 from pisort.parse_offset import parse_offset
 
 exif_datetime_format = "%Y:%m:%d %H:%M:%S"
@@ -13,8 +15,10 @@ class Picture:
 
     def __init__(self, path: Path):
         self.path = path
-        with Image.open(path) as img:
-            self.exif = img.getexif()
+        with path.open("rb") as f:
+            self.exif: dict[str, IfdTag] = exifread.process_file(f)
+        if len(self.exif) == 0:
+            raise NoExifDataException()
 
     def __str__(self) -> str:
         return self.path.name
@@ -22,28 +26,22 @@ class Picture:
     def print(self, file: Optional[TextIO] = None) -> None:
         print(f'{self.path.name}:')
         for k, v in self.exif.items():
-            print(f'  {ExifTags.TAGS[k]}: {v}', file=file)
-        for k, v in self.exif.get_ifd(ExifTags.IFD.Exif).items():
-            print(f'  {ExifTags.TAGS[k]}: {v}', file=file)
+            print(f'  {k}: {v}', file=file)
 
     def date(self) -> Optional[datetime.datetime]:
         tz = datetime.datetime.now().astimezone().tzinfo
-        tz_ifd = self.exif.get_ifd(ExifTags.IFD.Exif)
         for (date_tag, tz_tag) in [
-            (ExifTags.Base.DateTimeOriginal, ExifTags.Base.OffsetTimeOriginal),
-            (ExifTags.Base.DateTimeDigitized, ExifTags.Base.OffsetTimeDigitized),
-            (ExifTags.Base.DateTime, ExifTags.Base.OffsetTime),
+            ("EXIF DateTimeOriginal", "EXIF OffsetTimeOriginal"),
+            ("EXIF DateTimeDigitized", "EXIF OffsetTimeDigitized"),
+            ("Image DateTime", "EXIF OffsetTime"),
         ]:
-            date_ifd = self.exif.get_ifd(ExifTags.IFD.Exif)
-            if date_tag == ExifTags.Base.DateTime:
-                date_ifd = self.exif
-            if date_tag in date_ifd:
+            if date_tag in self.exif.keys():
                 date = datetime.datetime.strptime(
-                    date_ifd[date_tag],
+                    self.exif[date_tag].values,
                     exif_datetime_format,
                 )
-                if tz_tag in tz_ifd:
-                    tz = parse_offset(tz_ifd[tz_tag])
+                if tz_tag in self.exif.keys():
+                    tz = parse_offset(self.exif[tz_tag].values)
                 return date.replace(tzinfo=tz)
         return None
 
